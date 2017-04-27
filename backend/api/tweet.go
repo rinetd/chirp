@@ -6,9 +6,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
-
 	"github.com/VirrageS/chirp/backend/model"
+	"github.com/gin-gonic/gin"
 )
 
 func (api *API) GetTweet(context *gin.Context) {
@@ -43,13 +42,15 @@ func (api *API) PostTweet(context *gin.Context) {
 
 	newTweet.AuthorID = requestingUserID
 
+	// log.WithField("followeeID", newTweet).Info("newTweet .")
+
 	responseTweet, err := api.service.PostTweet(&newTweet, requestingUserID)
 	if err != nil {
 		statusCode := getStatusCodeFromError(err)
 		context.AbortWithError(statusCode, err)
 		return
 	}
-
+	// log.WithField("responseTweet", responseTweet).Warn("responseTweet .")
 	context.Header("Location", fmt.Sprintf("/user/%d", responseTweet.ID))
 	context.IndentedJSON(http.StatusCreated, responseTweet)
 }

@@ -15,7 +15,7 @@ type API struct {
 	googleOAuth2 oauth2.Config
 }
 
-// Constructs an API object that uses given ServiceProvider.
+// New Constructs an API object that uses given ServiceProvider.
 func New(
 	service service.ServiceProvider,
 	tokenManager token.Manager,

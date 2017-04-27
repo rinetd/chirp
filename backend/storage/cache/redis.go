@@ -2,6 +2,7 @@ package cache
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -171,11 +172,13 @@ func (cache *redisCache) Decr(keys ...Key) error {
 // SAdd adds array of `values` to set stored at `key`.
 // Since it is set multiple values will squashed into single.
 func (cache *redisCache) SAdd(key Key, values Values) error {
+	// log.WithField("values", values).Info("SAdd:  values")
 	members, err := cache.marshalValues(values)
 	if err != nil {
 		log.WithField("values", values).WithError(err).Error("SAdd: failed to marshal values")
 		return err
 	}
+	// log.WithField("members", members).Info("SAdd: failed to marshal values")
 
 	return cache.client.SAdd(cache.convertKeyToHash(key), members...).Err()
 }
@@ -227,10 +230,11 @@ func (cache *redisCache) Flush() error {
 // unmarshalValue unmarshals single value from string.
 func (cache *redisCache) unmarshalValue(result string, value Value) error {
 	var (
+		b   bool
 		val int64
 		err error
 	)
-
+	fmt.Println(reflect.TypeOf(value))
 	switch value := value.(type) {
 	case *int64:
 		*value, err = strconv.ParseInt(result, 10, 64)
@@ -246,6 +250,23 @@ func (cache *redisCache) unmarshalValue(result string, value Value) error {
 	case *int:
 		val, err = strconv.ParseInt(result, 10, 0)
 		*value = int(val)
+	case *bool:
+		b, err = strconv.ParseBool(result)
+		*value = bool(b)
+	case []int64:
+		value[0], err = strconv.ParseInt(result, 10, 64)
+	case []int32:
+		val, err = strconv.ParseInt(result, 10, 32)
+		value[0] = int32(val)
+	case []int16:
+		val, err = strconv.ParseInt(result, 10, 16)
+		value[0] = int16(val)
+	case []int8:
+		val, err = strconv.ParseInt(result, 10, 8)
+		value[0] = int8(val)
+	case []int:
+		val, err = strconv.ParseInt(result, 10, 0)
+		value[0] = int(val)
 	default:
 		err = msgpack.Unmarshal([]byte(result), value)
 	}
@@ -273,7 +294,6 @@ func (cache *redisCache) marshalValue(value Value) (interface{}, error) {
 // marshalValues marshals array of values
 func (cache *redisCache) marshalValues(values Values) ([]interface{}, error) {
 	var members []interface{}
-
 	switch v := values.(type) {
 	case []int64:
 		members = make([]interface{}, 0, len(v))
@@ -285,6 +305,10 @@ func (cache *redisCache) marshalValues(values Values) ([]interface{}, error) {
 
 			members = append(members, data)
 		}
+	case int64, int32, int16, int8, int:
+		// members = make([]interface{}, 0)
+		data := values
+		members = append(members, data)
 	default:
 		panic("marshalValues: invalid `values` type")
 	}

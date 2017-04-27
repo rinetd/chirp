@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetUser is rest
 func (api *API) GetUser(context *gin.Context) {
 	requestingUserID := (context.MustGet("userID").(int64))
 	parameterID := context.Param("id")

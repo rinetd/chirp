@@ -3,14 +3,14 @@ package storage
 import (
 	"time"
 
-	"github.com/lib/pq"
-
+	log "github.com/Sirupsen/logrus"
 	"github.com/VirrageS/chirp/backend/async"
 	"github.com/VirrageS/chirp/backend/model"
 	"github.com/VirrageS/chirp/backend/model/errors"
 	"github.com/VirrageS/chirp/backend/storage/cache"
 	"github.com/VirrageS/chirp/backend/storage/database"
 	"github.com/VirrageS/chirp/backend/storage/fulltextsearch"
+	"github.com/lib/pq"
 )
 
 // usersStorage is struct which implements userDataAccessor using given DAO, cache and full text search provider
@@ -138,15 +138,16 @@ func (s *usersStorage) GetFollowers(userID, requestingUserID int64) ([]*model.Pu
 		if err != nil {
 			return nil, errors.UnexpectedError
 		}
+		log.WithField("Cache followersIDs", followersIDs).Info("GetFollowers")
 
 		s.cache.Set(cache.Entry{key, followersIDs})
 	}
-
+	log.WithField("followersIDs", followersIDs).Info("GetFollowers")
 	followers, err := s.getUsersByIDs(followersIDs, requestingUserID)
 	if err != nil {
 		return nil, errors.UnexpectedError
 	}
-
+	log.WithField("followers", followers).Info("GetFollowers")
 	return followers, nil
 }
 

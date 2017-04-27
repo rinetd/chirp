@@ -1,5 +1,5 @@
 FROM postgres:9.5
-
+RUN sed -i "s|deb.debian.org|mirrors.aliyun.com|g" /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get install -y git build-essential postgresql libpq-dev postgresql-server-dev-all postgresql-common
 RUN git clone https://github.com/keithf4/pg_partman.git

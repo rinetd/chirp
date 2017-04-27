@@ -13,14 +13,23 @@ import (
 func ContentTypeChecker() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		contentType := context.Request.Header.Get("Content-Type")
-		if contentType != "application/json" {
+		if contentType == "application/json" || contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data" {
+			context.Next()
+		} else {
 			context.AbortWithError(
 				http.StatusUnsupportedMediaType,
 				errors.New("Required content-type: application/json"),
 			)
 			return
 		}
-
-		context.Next()
+		// if contentType != "application/json" && contentType != "application/x-www-form-urlencoded" {
+		// 	context.AbortWithError(
+		// 		http.StatusUnsupportedMediaType,
+		// 		errors.New("Required content-type: application/json"),
+		// 	)
+		// 	return
+		// }
+		//
+		// context.Next()
 	}
 }

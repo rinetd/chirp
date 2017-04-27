@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	log "github.com/Sirupsen/logrus"
+	"github.com/VirrageS/chirp/backend/model"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"
-
-	"github.com/VirrageS/chirp/backend/model"
 )
 
 func (api *API) RegisterUser(context *gin.Context) {
@@ -34,14 +34,35 @@ func (api *API) RegisterUser(context *gin.Context) {
 
 func (api *API) LoginUser(context *gin.Context) {
 	var loginForm model.LoginForm
-	if err := context.BindJSON(&loginForm); err != nil {
-		context.AbortWithError(
-			http.StatusBadRequest,
-			errors.New("Fields: email and password are required."),
-		)
-		return
-	}
 
+	contentType := context.ContentType()
+	switch contentType {
+	case "application/json":
+		if err := context.BindJSON(&loginForm); err != nil {
+			context.AbortWithError(
+				http.StatusBadRequest,
+				errors.New("Fields: email and password are required."),
+			)
+			return
+		}
+
+	case "application/x-www-form-urlencoded":
+		loginForm.Email = context.PostForm("email")
+		loginForm.Password = context.PostForm("password")
+		if loginForm.Email == "" {
+			context.AbortWithError(
+				http.StatusBadRequest,
+				errors.New("Fields: email and password are erro."),
+			)
+			return
+		}
+	case "multipart/form-data":
+
+	}
+	log.WithFields(log.Fields{
+		"followeeID": loginForm,
+		"followerID": "followerID",
+	}).Info("FollowUser query error.")
 	loggedUser, err := api.service.LoginUser(&loginForm)
 	if err != nil {
 		statusCode := getStatusCodeFromError(err)

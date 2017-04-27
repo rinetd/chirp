@@ -66,9 +66,13 @@ func setupRouter(api api.APIProvider, tokenManager token.Manager) *gin.Engine {
 
 	auth := router.Group("")
 	{
-		auth.POST("/signup", contentTypeChecker, api.RegisterUser)
-		auth.POST("/login", contentTypeChecker, api.LoginUser)
-		auth.POST("/token", contentTypeChecker, api.RefreshAuthToken)
+		user := router.Group("", contentTypeChecker)
+		{
+			user.POST("/signup", api.RegisterUser)
+			user.POST("/login", api.LoginUser)
+			user.POST("/token", api.RefreshAuthToken)
+
+		}
 		auth.GET("/authorize/google", api.GetGoogleAuthorizationURL)
 		auth.POST("/login/google", api.CreateOrLoginUserWithGoogle)
 	}

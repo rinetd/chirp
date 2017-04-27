@@ -33,7 +33,7 @@ func New() *Configuration {
 		v.AddConfigPath(cp)
 	}
 	v.AddConfigPath(`$GOPATH/src/github.com/VirrageS/chirp/backend`)
-
+	v.AddConfigPath(".")
 	cn := utils.GetenvOrDefault(`CHIRP_CONFIG_NAME`, "config")
 	v.SetConfigName(cn)
 

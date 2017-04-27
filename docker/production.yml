@@ -59,9 +59,10 @@ services:
       - "80:80"
     depends_on:
       - frontend
-      - backend
+      # - backend
     volumes_from:
       - frontend
-    links:
-      - frontend
-      - backend
+    # links:
+    #   - frontend
+    #   - backend
+    network_mode: "host"

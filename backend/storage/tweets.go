@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"fmt"
+
+	log "github.com/Sirupsen/logrus"
 	"github.com/VirrageS/chirp/backend/async"
 	"github.com/VirrageS/chirp/backend/model"
 	"github.com/VirrageS/chirp/backend/model/errors"
@@ -34,12 +37,12 @@ func (s *tweetsStorage) GetUsersTweets(userID, requestingUserID int64) ([]*model
 	if err != nil {
 		return nil, err
 	}
-
+	fmt.Println(tweetsIDs)
 	tweets, err := s.getTweetsByIDs(tweetsIDs, requestingUserID)
 	if err != nil {
 		return nil, errors.UnexpectedError
 	}
-
+	log.WithField("tweets", tweets).Info("GetUsersTweets")
 	return tweets, nil
 }
 
@@ -77,6 +80,7 @@ func (s *tweetsStorage) GetTweet(tweetID, requestingUserID int64) (*model.Tweet,
 
 		s.cache.Set(cache.Entry{key, tweet})
 	}
+	log.WithField("tweet", tweet).Info("GetTweet")
 
 	err = s.collectTweetData(tweet, requestingUserID)
 	if err != nil {
@@ -91,13 +95,13 @@ func (s *tweetsStorage) InsertTweet(tweet *model.NewTweet, requestingUserID int6
 	if err != nil {
 		return nil, errors.UnexpectedError
 	}
-
 	err = s.collectTweetData(insertedTweet, requestingUserID)
 	if err != nil {
 		return nil, errors.UnexpectedError
 	}
-
 	s.cache.Set(cache.Entry{cache.Key{"tweet", insertedTweet.ID}, insertedTweet})
+	log.WithField("collectTweetData", insertedTweet).Info("collectTweetData")
+
 	s.cache.SAdd(cache.Key{"tweets.ids", requestingUserID}, insertedTweet.ID)
 
 	return insertedTweet, nil
@@ -215,8 +219,9 @@ func (s *tweetsStorage) collectTweetData(tweet *model.Tweet, requestingUserID in
 	if err != nil {
 		return err
 	}
-
 	key := cache.Key{"tweet", tweet.ID, "like.count"}
+	log.WithField("key", key).Info("collectTweetData")
+
 	if exists, _ := s.cache.GetSingle(key, &likeCount); !exists {
 		likeCount, err = s.likesDAO.GetLikeCount(tweet.ID)
 		if err != nil {
@@ -225,6 +230,7 @@ func (s *tweetsStorage) collectTweetData(tweet *model.Tweet, requestingUserID in
 
 		s.cache.Set(cache.Entry{key, likeCount})
 	}
+	log.WithField("likeCount", likeCount).Info("collectTweetData")
 
 	key = cache.Key{"tweet", tweet.ID, "liked.by", requestingUserID}
 	if exists, _ := s.cache.GetSingle(key, &isLiked); !exists {

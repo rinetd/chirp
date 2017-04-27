@@ -1,0 +1,5 @@
+version: '2'
+services:
+  logstash:
+    restart: always
+    build: ./logstash
